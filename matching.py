@@ -201,8 +201,8 @@ def parse_course_changes(course_data: pd.DataFrame,
                          course_diffs: pd.DataFrame) -> ChangeDetails:
     course_changes = []
     for _, row in course_diffs.iterrows():
-        students_old = str(row[0]).split(';')
-        students_new = str(row[1]).split(';')
+        students_old = str(row.iloc[0]).split(';')
+        students_new = str(row.iloc[1]).split(';')
         for old, new in zip(students_old, students_new):
             if old in course_data.columns:
                 old += ' ({})'.format(course_data.loc[row.name, old])
@@ -241,12 +241,12 @@ def parse_student_changes(student_data: pd.DataFrame, course_data: pd.DataFrame,
     student_changes = []
     for _, row in student_diffs.iterrows():
         student = student_data.index[row.name]
-        course_old = course_data.index[row[0]] if row[0] >= 0 else 'unassigned'
-        course_new = course_data.index[row[1]] if row[1] >= 0 else 'unassigned'
-        if row[0] >= 0:
+        course_old = course_data.index[row.iloc[0]] if row.iloc[0] >= 0 else 'unassigned'
+        course_new = course_data.index[row.iloc[1]] if row.iloc[1] >= 0 else 'unassigned'
+        if row.iloc[0] >= 0:
             course_matches_old[course_old].append(student)
             course_old += ' ({})'.format(student_data.loc[student, course_old])
-        if row[1] >= 0:
+        if row.iloc[1] >= 0:
             course_matches_new[course_new].append(student)
             course_new += ' ({})'.format(student_data.loc[student, course_new])
 
@@ -775,3 +775,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     run_matching(**vars(args))
+

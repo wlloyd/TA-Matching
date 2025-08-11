@@ -486,6 +486,7 @@ def format_netid(email: str) -> str:
 
 def format_course_list(courses: str) -> List[str]:
     courses = courses.replace('Technology, Business, and', '')
+    courses = courses.replace('Artificial Intelligence, Law, & Public Policy', "")
     courses = courses.replace(',', ';')
     courses = courses.replace(' ', '')
     courses = courses.split(';')
@@ -666,3 +667,4 @@ if __name__ == "__main__":
     write_csvs(
         args.planning, args.ta_prefs, args.fac_prefs,
         output_directory_title=args.output_dir)
+

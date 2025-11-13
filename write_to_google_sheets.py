@@ -523,6 +523,34 @@ def write_params_csv(num_executed: str, output_dir_title: str) -> Tuple[
         center_align_details=(1, 1))
     return sheet.id, ws.id
 
+def copy_input_worksheets(num_executed: str, planning_sheet_title: str,
+                          planning_worksheets: List[Worksheet],
+                          student_prefs_sheet_id: str,
+                          instructor_prefs_sheet_id: str) -> InputCopyIDs:
+    print(f"Copying input for execution #{num_executed}")
+    planning_input_copy_sheet = get_sheet(
+        gs_consts.PLANNING_INPUT_COPY_SHEET_TITLE)
+    _, planning_courses_copy_ws_id = copy_to_from_worksheets(
+        planning_sheet_title, planning_worksheets, planning_input_copy_sheet,
+        gs_consts.PLANNING_INPUT_COURSES_TAB_TITLE, f"{num_executed}(C)")
+    _, planning_students_copy_ws_id = copy_to_from_worksheets(
+        planning_sheet_title, planning_worksheets, planning_input_copy_sheet,
+        gs_consts.PLANNING_INPUT_STUDENTS_TAB_TITLE, f"{num_executed}(S)")
+    planning_input_copy_ids = (
+        planning_input_copy_sheet.id, planning_students_copy_ws_id,
+        planning_courses_copy_ws_id)
+
+    student_prefs_copy_ids = copy_to(
+        get_sheet_by_id(student_prefs_sheet_id), get_sheet(
+            gs_consts.TA_PREFERENCES_INPUT_COPY_SHEET_TITLE),
+        gs_consts.PREFERENCES_INPUT_TAB_TITLE, num_executed)
+
+    instructor_prefs_copy_ids = copy_to(
+        get_sheet_by_id(instructor_prefs_sheet_id), get_sheet(
+            gs_consts.INSTRUCTOR_PREFERENCES_INPUT_COPY_SHEET_TITLE),
+        gs_consts.PREFERENCES_INPUT_TAB_TITLE, num_executed)
+    return planning_input_copy_ids, student_prefs_copy_ids, instructor_prefs_copy_ids
+
 def copy_to_from_worksheets(old_worksheet_title: str,
                             old_worksheets: List[Worksheet],
                             new_sheet: Spreadsheet, old_tab_title: str,

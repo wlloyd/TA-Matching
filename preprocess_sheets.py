@@ -319,12 +319,20 @@ def get_students(planning_sheet_worksheets: List[write_gs.Worksheet],
     years = parse_years(student_info)
     students = parse_student_preferences(student_preferences_tab)
 
+    students = add_in_bank_join(students, student_info)
+    # in case assigned students did not send in preferences
+    students = add_in_assigned(students, assigned, names)
+    students = add_in_notes(students, student_notes)
+    students = fix_advisors(students, student_info)
+            
     diffs = []
     for netid, name in names.items():
         if netid not in students:
+            # check if students without preferences are preassigned
+            
             diffs.append(f"{netid} ({name})")
     if diffs:
-        print(f"In the planning sheet but did not submit preferences:", diffs)
+        print(f"In the planning sheet but did not submit preferences (and not preassigned):", diffs)
 
     diffs = []
     for student, student_prefs_info in students.items():
@@ -334,11 +342,6 @@ def get_students(planning_sheet_worksheets: List[write_gs.Worksheet],
         sys.exit(
             f"Terminating: the following students submitted preferences but are not in the planning sheet: {diffs}")
 
-    students = add_in_bank_join(students, student_info)
-    # in case assigned students did not send in preferences
-    students = add_in_assigned(students, assigned, names)
-    students = add_in_notes(students, student_notes)
-    students = fix_advisors(students, student_info)
     return assigned, years, students
 
 

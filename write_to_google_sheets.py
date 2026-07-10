@@ -531,10 +531,10 @@ def copy_input_worksheets(num_executed: str, planning_sheet_title: str,
         gs_consts.PLANNING_INPUT_COPY_SHEET_KEY)
     _, planning_courses_copy_ws_id = copy_to_from_worksheets(
         planning_sheet_title, planning_worksheets, planning_input_copy_sheet,
-        gs_consts.PLANNING_INPUT_COURSES_TAB_KEY, f"{num_executed}(C)")
+        gs_consts.PLANNING_INPUT_COURSES_TAB_TITLE, f"{num_executed}(C)")
     _, planning_students_copy_ws_id = copy_to_from_worksheets(
         planning_sheet_title, planning_worksheets, planning_input_copy_sheet,
-        gs_consts.PLANNING_INPUT_STUDENTS_TAB_KEY, f"{num_executed}(S)")
+        gs_consts.PLANNING_INPUT_STUDENTS_TAB_TITLE, f"{num_executed}(S)")
     planning_input_copy_ids = (
         planning_input_copy_sheet.id, planning_students_copy_ws_id,
         planning_courses_copy_ws_id)
@@ -542,12 +542,12 @@ def copy_input_worksheets(num_executed: str, planning_sheet_title: str,
     student_prefs_copy_ids = copy_to(
         get_sheet_by_id(student_prefs_sheet_id), get_sheet_by_id(
             gs_consts.TA_PREFERENCES_INPUT_COPY_SHEET_KEY),
-        gs_consts.PREFERENCES_INPUT_TAB_KEY, num_executed)
+        gs_consts.PREFERENCES_INPUT_TAB_TITLE, num_executed)
 
     instructor_prefs_copy_ids = copy_to(
         get_sheet_by_id(instructor_prefs_sheet_id), get_sheet_by_id(
             gs_consts.INSTRUCTOR_PREFERENCES_INPUT_COPY_SHEET_KEY),
-        gs_consts.PREFERENCES_INPUT_TAB_KEY, num_executed)
+        gs_consts.PREFERENCES_INPUT_TAB_TITLE, num_executed)
     return planning_input_copy_ids, student_prefs_copy_ids, instructor_prefs_copy_ids
 
 def copy_to_from_worksheets(old_worksheet_title: str,

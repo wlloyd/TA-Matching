@@ -6,7 +6,7 @@ import gspread
 import pytz
 from gspread import Spreadsheet, Worksheet
 
-import g_sheet_consts as gs_consts
+import g_sheet_key_consts as gs_consts
 
 InputCopyIDs = Tuple[
     Tuple[str, str, str, str], Tuple[str, str], Tuple[str, str]]
@@ -36,7 +36,7 @@ def get_num_execution_from_matchings_sheet(
     str, Optional[Spreadsheet], List[Worksheet], Optional[List[Worksheet]]]:
     matchings_sheet = None
     if matchings_sheet_worksheets is None:
-        matchings_sheet = get_sheet(gs_consts.MATCHING_OUTPUT_SHEET_TITLE)
+        matchings_sheet = get_sheet_by_id(gs_consts.MATCHING_OUTPUT_SHEET_KEY)
         matchings_sheet_worksheets = matchings_sheet.worksheets()
     matchings_worksheets = [e.title for e in matchings_sheet_worksheets]
     matchings_worksheets.remove('ToC')
@@ -61,8 +61,8 @@ def get_input_num_execution(
         planning_input_copy_worksheets: List[Worksheet] = None) -> Tuple[
     int, List[Worksheet]]:
     if planning_input_copy_worksheets is None:
-        planning_inputs_copy_sheet = get_sheet(
-            gs_consts.PLANNING_INPUT_COPY_SHEET_TITLE)
+        planning_inputs_copy_sheet = get_sheet_by_id(
+            gs_consts.PLANNING_INPUT_COPY_SHEET_KEY)
         planning_input_copy_worksheets = planning_inputs_copy_sheet.worksheets()
     planning_inputs_worksheets = [e.title for e in
                                   planning_input_copy_worksheets]
@@ -78,11 +78,11 @@ def add_worksheet(sheet: Spreadsheet, worksheet_title: str, rows=100, cols=26,
 
 
 def get_worksheet(sheet_title: str, worksheet_title: str) -> Worksheet:
-    sheet = get_sheet(sheet_title)
+    sheet = get_sheet_by_id(sheet_title)
     return get_worksheet_from_sheet(sheet, worksheet_title)
 
 
-def get_sheet(sheet_title: str) -> Spreadsheet:
+def get_sheet_by_id(sheet_title: str) -> Spreadsheet:
     gc = gspread.service_account(filename='./credentials.json')
     return gc.open(sheet_title)
 
@@ -170,7 +170,7 @@ def write_execution_to_ToC(toc_ws: Worksheet, executor: str, executed_num: str,
 
 
 def initialize_input_copy_ids_tuples(input_executed_num: str) -> InputCopyIDs:
-    planning_sheet = get_sheet(gs_consts.PLANNING_INPUT_COPY_SHEET_TITLE)
+    planning_sheet = get_sheet_by_id(gs_consts.PLANNING_INPUT_COPY_SHEET_KEY)
     planning_worksheets = planning_sheet.worksheets()
     planning_input_copy_students_ws_id = get_worksheet_from_worksheets(
         planning_worksheets, f"{input_executed_num}(S)",
@@ -180,13 +180,13 @@ def initialize_input_copy_ids_tuples(input_executed_num: str) -> InputCopyIDs:
         planning_sheet.title).id
     planning_ids = (planning_sheet.id, planning_input_copy_students_ws_id,
                     planning_input_copy_courses_ws_id)
-    student_prefs_sheet = get_sheet(
-        gs_consts.TA_PREFERENCES_INPUT_COPY_SHEET_TITLE)
+    student_prefs_sheet = get_sheet_by_id(
+        gs_consts.TA_PREFERENCES_INPUT_COPY_SHEET_KEY)
     student_prefs_ws_id = get_worksheet_from_sheet(
         student_prefs_sheet, input_executed_num).id
     student_prefs_ids = (student_prefs_sheet.id, student_prefs_ws_id)
-    instructor_prefs_sheet = get_sheet(
-        gs_consts.INSTRUCTOR_PREFERENCES_INPUT_COPY_SHEET_TITLE)
+    instructor_prefs_sheet = get_sheet_by_id(
+        gs_consts.INSTRUCTOR_PREFERENCES_INPUT_COPY_SHEET_KEY)
     instructor_prefs_ws_id = get_worksheet_from_sheet(
         instructor_prefs_sheet, input_executed_num).id
     instructor_prefs_ids = (instructor_prefs_sheet.id, instructor_prefs_ws_id)
@@ -194,7 +194,7 @@ def initialize_input_copy_ids_tuples(input_executed_num: str) -> InputCopyIDs:
 
 
 def initialize_params_copy_ids(params_executed_num: str) -> Tuple[str, str]:
-    params_copy_sheet = get_sheet(gs_consts.PARAMS_INPUT_COPY_SHEET_TITLE)
+    params_copy_sheet = get_sheet_by_id(gs_consts.PARAMS_INPUT_COPY_SHEET_KEY)
     params_copy_ws = get_worksheet_from_sheet(
         params_copy_sheet, params_executed_num)
     return params_copy_sheet.id, params_copy_ws.id
@@ -203,15 +203,15 @@ def initialize_params_copy_ids(params_executed_num: str) -> Tuple[str, str]:
 def initialize_output_ids(num_executed: str,
                           matching_diffs_ws_title: str = None,
                           alternates=0) -> OutputIDs:
-    matching_output_sheet = get_sheet(gs_consts.MATCHING_OUTPUT_SHEET_TITLE)
+    matching_output_sheet = get_sheet_by_id(gs_consts.MATCHING_OUTPUT_SHEET_KEY)
     matchings_worksheet = get_worksheet_from_sheet(
         matching_output_sheet, num_executed)
     matchings_ids = (matching_output_sheet.id, matchings_worksheet.id)
 
     matching_diffs_ids, augmenting_paths_ids = None, None
     if matching_diffs_ws_title is not None:
-        matching_diff_sheet = get_sheet(
-            gs_consts.MATCHING_OUTPUT_DIFF_SHEET_TITLE)
+        matching_diff_sheet = get_sheet_by_id(
+            gs_consts.MATCHING_OUTPUT_DIFF_SHEET_KEY)
         students_diff_id = get_worksheet_from_sheet(
             matching_diff_sheet, matching_diffs_ws_title + '(S)').id
         courses_diff_id = get_worksheet_from_sheet(
@@ -219,37 +219,37 @@ def initialize_output_ids(num_executed: str,
         matching_diffs_ids = (
             matching_diff_sheet.id, students_diff_id, courses_diff_id)
 
-        augmenting_paths_sheet = get_sheet(
-            gs_consts.AUGMENTING_PATHS_OUTPUT_SHEET_TITLE)
+        augmenting_paths_sheet = get_sheet_by_id(
+            gs_consts.AUGMENTING_PATHS_OUTPUT_SHEET_KEY)
         augmenting_paths_ws = get_worksheet_from_sheet(
             matching_diff_sheet, matching_diffs_ws_title).id
         augmenting_paths_ids = (
             augmenting_paths_sheet.id, augmenting_paths_ws.id)
 
-    additional_ta_sheet = get_sheet(gs_consts.ADDITIONAL_TA_OUTPUT_SHEET_TITLE)
+    additional_ta_sheet = get_sheet_by_id(gs_consts.ADDITIONAL_TA_OUTPUT_SHEET_KEY)
     additional_ta_ws = get_worksheet_from_sheet(
         additional_ta_sheet, num_executed)
     additional_ta_ids = (additional_ta_sheet.id, additional_ta_ws.id)
 
-    remove_ta_sheet = get_sheet(gs_consts.REMOVE_TA_OUTPUT_SHEET_TITLE)
+    remove_ta_sheet = get_sheet_by_id(gs_consts.REMOVE_TA_OUTPUT_SHEET_KEY)
     remove_ta_ws = get_worksheet_from_sheet(remove_ta_sheet, num_executed)
     remove_ta_ids = (remove_ta_sheet.id, remove_ta_ws.id)
 
-    add_slot_sheet = get_sheet(gs_consts.ADD_SLOT_OUTPUT_SHEET_TITLE)
+    add_slot_sheet = get_sheet_by_id(gs_consts.ADD_SLOT_OUTPUT_SHEET_KEY)
     add_slot_ws = get_worksheet_from_sheet(add_slot_sheet, num_executed)
     add_slot_ids = (add_slot_sheet.id, add_slot_ws.id)
 
-    remove_slot_sheet = get_sheet(gs_consts.REMOVE_SLOT_OUTPUT_SHEET_TITLE)
+    remove_slot_sheet = get_sheet_by_id(gs_consts.REMOVE_SLOT_OUTPUT_SHEET_KEY)
     remove_slot_ws = get_worksheet_from_sheet(remove_slot_sheet, num_executed)
     remove_slot_ids = (remove_slot_sheet.id, remove_slot_ws.id)
 
-    interviews_sheet = get_sheet(gs_consts.COURSE_INTERVIEW_SHEET_TITLE)
+    interviews_sheet = get_sheet_by_id(gs_consts.COURSE_INTERVIEW_SHEET_KEY)
     interviews_ws = get_worksheet_from_sheet(interviews_sheet, num_executed)
     interviews_ids = (interviews_sheet.id, interviews_ws.id)
 
     alternates_ids = None
     if alternates > 0:
-        alternates_sheet = get_sheet(gs_consts.ALTERNATES_OUTPUT_SHEET_TITLE)
+        alternates_sheet = get_sheet_by_id(gs_consts.ALTERNATES_OUTPUT_SHEET_KEY)
         alternates_worksheets_ids = []
         for i in range(alternates):
             alternates_worksheets_ids.append(
@@ -432,7 +432,7 @@ def write_csv_to_new_tab_from_sheet(csv_path: str, sheet: Spreadsheet,
 def write_csv_to_new_tab(csv_path: str, sheet_name: str, tab_name: str,
                          tab_index=0, center_align=False, wrap=False) -> Tuple[
     Spreadsheet, Worksheet]:
-    sheet = get_sheet(sheet_name)
+    sheet = get_sheet_by_id(sheet_name)
     return sheet, write_csv_to_new_tab_from_sheet(
         csv_path, sheet, tab_name, tab_index, wrap, center_align)
 
@@ -448,8 +448,8 @@ def write_output_csvs(matching_output_sheet: Spreadsheet,
     matchings_ids = (matching_output_sheet.id, matchings_worksheet.id)
     matching_diffs_ids, alternates_ids, augmenting_paths_ids = None, None, None
     if matching_diffs_ws_title is not None:
-        matching_diff_sheet = get_sheet(
-            gs_consts.MATCHING_OUTPUT_DIFF_SHEET_TITLE)
+        matching_diff_sheet = get_sheet_by_id(
+            gs_consts.MATCHING_OUTPUT_DIFF_SHEET_KEY)
         students_diff_id = write_csv_to_new_tab_from_sheet(
             f'{outputs_dir_path}/matchings_students_diff.csv',
             matching_diff_sheet, matching_diffs_ws_title + '(S)').id
@@ -459,8 +459,8 @@ def write_output_csvs(matching_output_sheet: Spreadsheet,
         matching_diffs_ids = (
             matching_diff_sheet.id, students_diff_id, courses_diff_id)
 
-        augmenting_paths_sheet = get_sheet(
-            gs_consts.AUGMENTING_PATHS_OUTPUT_SHEET_TITLE)
+        augmenting_paths_sheet = get_sheet_by_id(
+            gs_consts.AUGMENTING_PATHS_OUTPUT_SHEET_KEY)
         augmenting_paths_ws = write_csv_to_new_tab_from_sheet(
             f'{outputs_dir_path}/augmenting_paths.csv', augmenting_paths_sheet,
             matching_diffs_ws_title, wrap=True, center_align_details=(0, 2))
@@ -470,25 +470,25 @@ def write_output_csvs(matching_output_sheet: Spreadsheet,
     add_ta_ids, remove_ta_ids = write_add_remove_csvs(
         include_remove_and_add_features, num_executed, outputs_dir_path,
         'additional_TA.csv', 'remove_TA.csv',
-        gs_consts.ADDITIONAL_TA_OUTPUT_SHEET_TITLE,
-        gs_consts.REMOVE_TA_OUTPUT_SHEET_TITLE)
+        gs_consts.ADDITIONAL_TA_OUTPUT_SHEET_KEY,
+        gs_consts.REMOVE_TA_OUTPUT_SHEET_KEY)
 
     add_slot_ids, remove_slot_ids = write_add_remove_csvs(
         include_remove_and_add_features, num_executed, outputs_dir_path,
         'add_slot.csv', 'remove_slot.csv',
-        gs_consts.ADD_SLOT_OUTPUT_SHEET_TITLE,
-        gs_consts.REMOVE_SLOT_OUTPUT_SHEET_TITLE)
+        gs_consts.ADD_SLOT_OUTPUT_SHEET_KEY,
+        gs_consts.REMOVE_SLOT_OUTPUT_SHEET_KEY)
 
     interview_ids = None
     if include_interviews:
-        interview_sheet = get_sheet(gs_consts.COURSE_INTERVIEW_SHEET_TITLE)
+        interview_sheet = get_sheet_by_id(gs_consts.COURSE_INTERVIEW_SHEET_KEY)
         interview_ws = write_csv_to_new_tab_from_sheet(
             f'{outputs_dir_path}/interview_simulations.csv', interview_sheet,
             num_executed, center_align_details=(3, 3))
         interview_ids = (interview_sheet.id, interview_ws.id)
 
     if alternates > 0:
-        alternates_sheet = get_sheet(gs_consts.ALTERNATES_OUTPUT_SHEET_TITLE)
+        alternates_sheet = get_sheet_by_id(gs_consts.ALTERNATES_OUTPUT_SHEET_KEY)
         alternates_worksheets_ids = []
         for i in range(alternates):
             alternates_worksheets_ids.append(
@@ -517,7 +517,7 @@ def write_add_remove_csvs(include_remove_and_add: bool, num_executed: str,
 
 def write_params_csv(num_executed: str, output_dir_title: str) -> Tuple[
     str, str]:
-    sheet = get_sheet(gs_consts.PARAMS_INPUT_COPY_SHEET_TITLE)
+    sheet = get_sheet_by_id(gs_consts.PARAMS_INPUT_COPY_SHEET_KEY)
     ws = write_csv_to_new_tab_from_sheet(
         f'{output_dir_title}/params.csv', sheet, num_executed,
         center_align_details=(1, 1))
@@ -528,27 +528,27 @@ def copy_input_worksheets(num_executed: str, planning_sheet_title: str,
                           student_prefs_sheet_id: str,
                           instructor_prefs_sheet_id: str) -> InputCopyIDs:
     print(f"Copying input for execution #{num_executed}")
-    planning_input_copy_sheet = get_sheet(
-        gs_consts.PLANNING_INPUT_COPY_SHEET_TITLE)
+    planning_input_copy_sheet = get_sheet_by_id(
+        gs_consts.PLANNING_INPUT_COPY_SHEET_KEY)
     _, planning_courses_copy_ws_id = copy_to_from_worksheets(
         planning_sheet_title, planning_worksheets, planning_input_copy_sheet,
-        gs_consts.PLANNING_INPUT_COURSES_TAB_TITLE, f"{num_executed}(C)")
+        gs_consts.PLANNING_INPUT_COURSES_TAB_KEY, f"{num_executed}(C)")
     _, planning_students_copy_ws_id = copy_to_from_worksheets(
         planning_sheet_title, planning_worksheets, planning_input_copy_sheet,
-        gs_consts.PLANNING_INPUT_STUDENTS_TAB_TITLE, f"{num_executed}(S)")
+        gs_consts.PLANNING_INPUT_STUDENTS_TAB_KEY, f"{num_executed}(S)")
     planning_input_copy_ids = (
         planning_input_copy_sheet.id, planning_students_copy_ws_id,
         planning_courses_copy_ws_id)
 
     student_prefs_copy_ids = copy_to(
-        get_sheet_by_id(student_prefs_sheet_id), get_sheet(
-            gs_consts.TA_PREFERENCES_INPUT_COPY_SHEET_TITLE),
-        gs_consts.PREFERENCES_INPUT_TAB_TITLE, num_executed)
+        get_sheet_by_id(student_prefs_sheet_id), get_sheet_by_id(
+            gs_consts.TA_PREFERENCES_INPUT_COPY_SHEET_KEY),
+        gs_consts.PREFERENCES_INPUT_TAB_KEY, num_executed)
 
     instructor_prefs_copy_ids = copy_to(
-        get_sheet_by_id(instructor_prefs_sheet_id), get_sheet(
-            gs_consts.INSTRUCTOR_PREFERENCES_INPUT_COPY_SHEET_TITLE),
-        gs_consts.PREFERENCES_INPUT_TAB_TITLE, num_executed)
+        get_sheet_by_id(instructor_prefs_sheet_id), get_sheet_by_id(
+            gs_consts.INSTRUCTOR_PREFERENCES_INPUT_COPY_SHEET_KEY),
+        gs_consts.PREFERENCES_INPUT_TAB_KEY, num_executed)
     return planning_input_copy_ids, student_prefs_copy_ids, instructor_prefs_copy_ids
 
 def copy_to_from_worksheets(old_worksheet_title: str,

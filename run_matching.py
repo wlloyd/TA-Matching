@@ -2,7 +2,7 @@ import argparse
 from typing import List, Tuple
 
 import compare_outputs
-import g_sheet_consts as gs_consts
+import g_sheet_key_consts as gs_consts
 import matching
 import preprocess_sheets as preprocess
 import write_to_google_sheets as write_gs
@@ -106,8 +106,8 @@ def write_matchings(executor: str, dir_path: str, matching_weight: float,
             planning_input_worksheets=planning_copy_input_worksheets)
 
     if matching_output_sheet is None:
-        matching_output_sheet = write_gs.get_sheet(
-            gs_consts.MATCHING_OUTPUT_SHEET_TITLE)
+        matching_output_sheet = write_gs.get_sheet_by_id(
+            gs_consts.MATCHING_OUTPUT_SHEET_KEY)
 
     outputs_dir_path = dir_path + '/outputs'
     include_matching_diff = False

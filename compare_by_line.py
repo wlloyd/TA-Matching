@@ -3,7 +3,7 @@ import csv
 from typing import List, Any, Tuple, Dict, Set
 import math
 import write_to_google_sheets as write_gs
-import g_sheet_consts as gs_consts
+import g_sheet_key_consts as gs_consts
 
 
 def __is_nan(num) -> bool:

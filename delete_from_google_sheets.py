@@ -2,7 +2,7 @@ import argparse
 import re
 from typing import List, Dict
 
-import g_sheet_consts as gs_consts
+import g_sheet_key_consts as gs_consts
 from write_to_google_sheets import get_sheet, get_rows_of_cells, \
     get_columns_of_cells_formatted, Spreadsheet, Worksheet
 

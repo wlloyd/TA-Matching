@@ -1,7 +1,7 @@
 import csv
 from typing import Dict, Tuple, List
 
-import g_sheet_consts
+import g_sheet_key_consts
 import write_to_google_sheets as write_gs
 
 
@@ -76,7 +76,7 @@ def compare_matching_worksheet_with_csv(
 def compare_matching_worksheets(old_matching_worksheet_title: str,
                                 new_matching_worksheet_title: str) -> Tuple[
     Dict[str, Tuple[str, str]], Dict[str, Tuple[List[str], List[str]]]]:
-    sheet = write_gs.get_sheet(g_sheet_consts.MATCHING_OUTPUT_SHEET_TITLE)
+    sheet = write_gs.get_sheet(g_sheet_key_consts.MATCHING_OUTPUT_SHEET_TITLE)
     old_matching_worksheet = write_gs.get_worksheet_from_sheet(
         sheet, old_matching_worksheet_title)
     old_matching = read_matching_from_matrix(
@@ -92,7 +92,7 @@ def write_comparison_to_worksheet(student_changes: Dict[str, Tuple[str, str]],
                                   course_changes: Dict[
                                       str, Tuple[List[str], List[str]]],
                                   new_worksheet_title: str):
-    sheet = write_gs.get_sheet(g_sheet_consts.MATCHING_OUTPUT_DIFF_SHEET_TITLE)
+    sheet = write_gs.get_sheet(g_sheet_key_consts.MATCHING_OUTPUT_DIFF_SHEET_TITLE)
     worksheets = {ws.title: ws for ws in sheet.worksheets()}
     prefix = f'https://docs.google.com/spreadsheets/d/{sheet.id}#gid='
     if new_worksheet_title + '(C)' in worksheets:

@@ -6,7 +6,7 @@ import re
 import sys
 from typing import Union, Any, Optional, List, Dict, Tuple, Set
 
-import g_sheet_consts as gs_consts
+import g_sheet_key_consts as gs_consts
 import write_to_google_sheets as write_gs
 
 try:
@@ -625,7 +625,7 @@ def validate_bank_join_values(students: StudentsType, years: YearsType):
 
 
 def get_and_write_previous(path: str, previous_matching_ws_title: str):
-    matching_sheet = write_gs.get_sheet(gs_consts.MATCHING_OUTPUT_SHEET_TITLE)
+    matching_sheet = write_gs.get_sheet_by_id(gs_consts.MATCHING_OUTPUT_SHEET_KEY)
     previous_ws = write_gs.get_worksheet_from_sheet(
         matching_sheet, previous_matching_ws_title)
     values = previous_ws.get_all_values()

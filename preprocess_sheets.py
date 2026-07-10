@@ -350,8 +350,7 @@ def get_students(planning_sheet_worksheets: List[write_gs.Worksheet],
 def get_student_info(
         planning_sheet_worksheets: List[write_gs.Worksheet]) -> StudentInfoType:
     student_info = write_gs.get_worksheet_from_worksheets(
-        planning_sheet_worksheets, gs_consts.PLANNING_INPUT_STUDENTS_TAB_TITLE,
-        gs_consts.MATCHING_OUTPUT_SHEET_TITLE).get_all_records()
+        planning_sheet_worksheets, gs_consts.PLANNING_INPUT_STUDENTS_TAB_TITLE).get_all_records()
 
     for student in student_info:
         student['NetID'] = student['NetID'].strip()
@@ -363,8 +362,7 @@ def get_courses(planning_sheet_id: str) -> Tuple[
     planning_sheet = write_gs.get_sheet_by_id(planning_sheet_id)
     planning_worksheets = planning_sheet.worksheets()
     ws = write_gs.get_worksheet_from_worksheets(
-        planning_worksheets, gs_consts.PLANNING_INPUT_COURSES_TAB_TITLE,
-        gs_consts.MATCHING_OUTPUT_SHEET_TITLE)
+        planning_worksheets, gs_consts.PLANNING_INPUT_COURSES_TAB_TITLE)
     courses = parse_courses(ws.get_all_records())
     return courses, planning_sheet.title, planning_worksheets
 

@@ -22,11 +22,11 @@ def get_worksheet_from_sheet(sheet: Spreadsheet, worksheet_title: str):
 
 
 def get_worksheet_from_worksheets(worksheets: List[Worksheet],
-                                  worksheet_title: str, sheet_title: str):
+                                  worksheet_title: str):
     for ws in worksheets:
         if ws.title == worksheet_title:
             return ws
-    raise ValueError(f"{worksheet_title} not a worksheet in {sheet_title}")
+    raise ValueError(f"{worksheet_title} not a worksheet in {worksheets}")
 
 
 def get_num_execution_from_matchings_sheet(
@@ -174,11 +174,9 @@ def initialize_input_copy_ids_tuples(input_executed_num: str) -> InputCopyIDs:
     planning_sheet = get_sheet_by_id(gs_consts.PLANNING_INPUT_COPY_SHEET_KEY)
     planning_worksheets = planning_sheet.worksheets()
     planning_input_copy_students_ws_id = get_worksheet_from_worksheets(
-        planning_worksheets, f"{input_executed_num}(S)",
-        planning_sheet.title).id
+        planning_worksheets, f"{input_executed_num}(S)").id
     planning_input_copy_courses_ws_id = get_worksheet_from_worksheets(
-        planning_worksheets, f"{input_executed_num}(C)",
-        planning_sheet.title).id
+        planning_worksheets, f"{input_executed_num}(C)").id
     planning_ids = (planning_sheet.id, planning_input_copy_students_ws_id,
                     planning_input_copy_courses_ws_id)
     student_prefs_sheet = get_sheet_by_id(
@@ -557,7 +555,7 @@ def copy_to_from_worksheets(old_worksheet_title: str,
                             new_sheet: Spreadsheet, old_tab_title: str,
                             new_tab_title: str) -> Tuple[str, str]:
     worksheet = get_worksheet_from_worksheets(
-        old_worksheets, old_tab_title, old_worksheet_title)
+        old_worksheets, old_tab_title)
     return copy_to_from_worksheet(new_sheet, new_tab_title, worksheet)
 
 

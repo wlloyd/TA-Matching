@@ -89,6 +89,7 @@ def get_sheet_by_id(sheet_title: str) -> Spreadsheet:
 
 def get_sheet_by_id(sheet_id: str) -> Spreadsheet:
     gc = gspread.service_account(filename='./credentials.json')
+    print(sheet_id)
     return gc.open_by_key(sheet_id)
 
 

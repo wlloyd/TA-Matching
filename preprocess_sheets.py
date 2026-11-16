@@ -15,6 +15,34 @@ except ImportError:
     from typing_extensions import TypedDict
 
 
+# --- Debugging for course-code parsing ---------------------------------------
+# Regex for course codes to trace through preprocessing. Set to None to turn
+# off. From Colab: `import preprocess_sheets; preprocess_sheets.DEBUG_COURSES = r'598'`
+DEBUG_COURSES: Optional[str] = r'598'
+
+
+def _debug_match(*values: Any) -> bool:
+    if not DEBUG_COURSES:
+        return False
+    return any(re.search(DEBUG_COURSES, str(v)) for v in values)
+
+
+def _debug(msg: str):
+    print(f"[DEBUG courses] {msg}")
+
+
+# Dept + 3-digit number + optional section letter (e.g. COS 598A). The letter
+# is only taken when it isn't the start of a word, so "COS 126 Intro" or
+# "COS 126Intro" stays COS 126.
+COURSE_CODE_RE = re.compile(r'[A-Za-z]{3}\s?[0-9]{3}(?:[A-Za-z](?![A-Za-z]))?')
+
+
+def extract_course_code(text: str) -> Optional[str]:
+    """ Returns e.g. 'COS 598A' (spacing as in `text`, uppercased) or None """
+    match = COURSE_CODE_RE.search(str(text))
+    return match.group().upper() if match else None
+
+
 class StudentType(TypedDict, total=False):
     NetID: str
     Name: str
@@ -375,9 +403,19 @@ def get_fac_prefs(instructor_preferences_sheet_id: str) -> FacultyPrefsType:
     fac_prefs = {}
     switched_keys = switch_keys_from_rows(tab, cols, True)
     for row in switched_keys:
-        course_code = re.search(r'[A-z]{3}[\s]?[0-9]{3}', str(row['Course']))
+        raw_course = row['Course']
+        course_code = extract_course_code(row['Course'])
         if course_code:
-            row['Course'] = course_code.group()
+            row['Course'] = course_code
+        if _debug_match(raw_course, row['Course']):
+            _debug(f"instructor pref from {row.get('Email', '?')}: "
+                   f"'Which course?' raw={raw_course!r} -> key={row['Course']!r}")
+        if row['Course'] in fac_prefs:
+            prev = fac_prefs[row['Course']]
+            print(f"WARNING: instructor preference key {row['Course']!r} "
+                  f"(raw {raw_course!r} from {row.get('Email', '?')}) "
+                  f"overwrites an earlier response from "
+                  f"{prev.get('Email', '?')}")
         fac_prefs[row['Course']] = row
     return fac_prefs
 
@@ -419,6 +457,13 @@ def format_course(course: CourseValue, prefs: FacultyPrefsType) -> Optional[
         course_code = num
 
     sort_fav = ''
+    if _debug_match(course['Course'], course_code):
+        similar = [k for k in prefs if _debug_match(k)]
+        _debug(f"planning sheet course raw={course['Course']!r} -> "
+               f"code={course_code!r} (written as "
+               f"{course_code.replace(' ', '')!r}); slots={slots!r}; "
+               f"instructor prefs found={course_code in prefs}; "
+               f"matching instructor-pref keys={similar}")
     if course_code in prefs:
         pref = prefs[course_code]
         fav = ';'.join(format_pref_list(pref['Favorite']))
@@ -491,12 +536,17 @@ def format_course_list(courses: str) -> List[str]:
     courses = courses.replace('Technology, Business, and', '')
     courses = courses.replace('Artificial Intelligence, Law, & Public Policy', "")
     courses = courses.replace(',', ';')
-    courses = courses.replace(' ', '')
     courses = courses.split(';')
     for i in range(len(courses)):
-        course_code = re.search(r'[A-z]{3}[\s]?[0-9]{3}', courses[i])
+        raw = courses[i]
+        # match before removing spaces so a title after the code
+        # (e.g. "COS 598A Advanced ...") isn't glued onto the section letter
+        course_code = extract_course_code(raw)
+        courses[i] = raw.replace(' ', '')
         if course_code:
-            courses[i] = course_code.group()
+            courses[i] = course_code.replace(' ', '')
+            if _debug_match(raw):
+                _debug(f"student course list entry raw={raw!r} -> {courses[i]!r}")
         elif courses[i]:
             print('Got bad course in student course list:', courses[i])
     return courses
@@ -632,6 +682,49 @@ def get_and_write_previous(path: str, previous_matching_ws_title: str):
         writer.writerows(values)
 
 
+def debug_cross_check_courses(path: str, students: StudentsType,
+                              fac_prefs: FacultyPrefsType):
+    """
+    Course codes in student_data.csv that are not exactly a row of
+    course_data.csv are silently ignored by matching.py, so a student who
+    lists only such courses can never be matched to them.
+    """
+    if not DEBUG_COURSES:
+        return
+    with open(f"{path}/course_data.csv", newline='') as f:
+        rows = list(csv.DictReader(f))
+    course_codes = [r['Course'] for r in rows]
+    _debug(f"course_data.csv codes matching {DEBUG_COURSES!r}: "
+           f"{[c for c in course_codes if _debug_match(c)]}")
+    for r in rows:
+        if _debug_match(r['Course']):
+            _debug(f"  {r['Course']!r}: slots={r['Slots']!r} "
+                   f"favorite={r['Favorite']!r} veto={r['Veto']!r}")
+
+    referenced: Dict[str, List[str]] = {}
+    for netid, s in students.items():
+        for rank in ('Favorite', 'Good', 'OK'):
+            for c in str(s.get(rank, '')).split(';'):
+                if c:
+                    referenced.setdefault(c, []).append(f"{netid}:{rank}")
+    _debug(f"student-listed codes matching {DEBUG_COURSES!r}: "
+           + str({c: len(v) for c, v in referenced.items()
+                  if _debug_match(c)}))
+
+    unknown = {c: v for c, v in referenced.items() if c not in course_codes}
+    if unknown:
+        print("WARNING: students listed courses that are not in "
+              "course_data.csv (these preferences are IGNORED by matching):")
+        for c, who in sorted(unknown.items()):
+            print(f"  {c!r}: {len(who)} student entries, e.g. {who[:5]}")
+
+    unused_prefs = [k for k in fac_prefs
+                    if str(k).replace(' ', '') not in course_codes]
+    if unused_prefs:
+        print("WARNING: instructor preference keys with no matching course "
+              f"in course_data.csv (favorites/vetoes IGNORED): {unused_prefs}")
+
+
 def write_csvs(planning_sheet_id: str, student_prefs_sheet_id: str,
                instructor_prefs_sheet_id: str,
                previous_matching_ws_title: str = None,
@@ -647,6 +740,7 @@ def write_csvs(planning_sheet_id: str, student_prefs_sheet_id: str,
     write_courses(path, courses, fac_prefs)
     write_students(path, courses, assigned, years, students)
     write_assigned(path, assigned)
+    debug_cross_check_courses(path, students, fac_prefs)
     if previous_matching_ws_title:
         get_and_write_previous(path, previous_matching_ws_title)
     return planning_sheet_id, student_prefs_sheet_id, instructor_prefs_sheet_id, planning_sheet_title, planning_sheet_worksheets
